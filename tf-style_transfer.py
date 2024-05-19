@@ -2,58 +2,20 @@ import os
 import tensorflow as tf
 # Load compressed models from tensorflow_hub
 os.environ['TFHUB_MODEL_LOAD_FORMAT'] = 'COMPRESSED'
-import IPython.display as display
-
-import matplotlib.pyplot as plt
-import matplotlib as mpl
-mpl.rcParams['figure.figsize'] = (12, 12)
-mpl.rcParams['axes.grid'] = False
 
 import numpy as np
-import PIL.Image
 import time
 import functools
 
+from tf_utils.manage_data import *
+
 ####
-import glob
-import imageio
+
 # !pip install git+https://github.com/tensorflow/docs
 import tensorflow_docs.vis.embed as embed
 import gc
 ####
 
-
-
-
-def tensor_to_image(tensor):
-  tensor = tensor*255
-  tensor = np.array(tensor, dtype=np.uint8)
-  if np.ndim(tensor)>3:
-    assert tensor.shape[0] == 1
-    tensor = tensor[0]
-  return PIL.Image.fromarray(tensor)
-
-def load_img(path_to_img):
-  max_dim = 512
-  img = tf.io.read_file(path_to_img)
-  img = tf.image.decode_image(img, channels=3)
-  img = tf.image.convert_image_dtype(img, tf.float32)
-
-  shape = tf.cast(tf.shape(img)[:-1], tf.float32)
-  long_dim = max(shape)
-  scale = max_dim / long_dim
-
-  new_shape = tf.cast(shape * scale, tf.int32)
-
-  img = tf.image.resize(img, new_shape)
-  img = img[tf.newaxis, :]
-  return img
-
-def save_image(image,img_name):
-  fig = plt.figure()
-  plt.imshow(image)
-  plt.axis('off')
-  plt.savefig(img_name + '.png')
 
 
 
@@ -147,9 +109,9 @@ style_path = "cat.png"
 content_image = load_img(content_path)
 style_image = load_img(style_path)
 plt.subplot(1, 2, 1)
-save_image(content_image[0], 'ou')
+save_img(content_image[0], 'ou')
 plt.subplot(1, 2, 2)
-save_image(style_image[0], 'Style Image')
+save_img(style_image[0], 'Style Image')
 
 
 # LOAD VGG19 AND TEST IT
@@ -240,15 +202,15 @@ train_step(image)
 train_step(image)
 train_step(image)
 image_out=tensor_to_image(image)
-save_image(image_out,"out")
+save_img(image_out,"img")
 
 
 
 import time
 start = time.time()
 
-epochs = 50
-steps_per_epoch = 25
+epochs = 2
+steps_per_epoch = 100
 
 step = 0
 for n in range(epochs):
@@ -256,19 +218,11 @@ for n in range(epochs):
     step += 1
     train_step(image)
     print(".", end='', flush=True)
-  save_image(tensor_to_image(image),"out"+str(n))
+  save_img(tensor_to_image(image),"img"+str(n))
   print("Train step: {}".format(step))
 
 end = time.time()
 print("Total time: {:.1f}".format(end-start))
 
 
-anim_file = 'style_transfer.mp4'
-with imageio.get_writer(anim_file, mode='I') as writer:
-  filenames = glob.glob('out*.png')
-  filenames = sorted(filenames)
-  for filename in filenames:
-    image = imageio.imread(filename)
-    writer.append_data(image)
-  image = imageio.imread(filename)
-  writer.append_data(image)
+save_gif('style_transfer')
