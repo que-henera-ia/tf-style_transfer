@@ -5,7 +5,7 @@ FROM tensorflow/tensorflow:latest-gpu
 WORKDIR /app
 
 # Copy the Python script into the container
-COPY tf-style_transfer.py /app/
+COPY main.py /app/
 
 # Install required Python packages
 RUN pip install imageio[ffmpeg]
@@ -16,5 +16,5 @@ RUN pip install tf-keras
 RUN pip install tensorflow-docs
 
 # Command to run your script when the container starts
-CMD ["python", "tf-style_transfer.py"]
+CMD ["python", "main.py"]
 
